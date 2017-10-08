@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "The practice session",
+  "description": "Enhances thesession.org with tools to help learn tunes",
+  "version": "1.0",
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://thesession.org/members/*/sets"],
+      "run_at": "document_end",
+      "css": ["practice-session.css"],
+      "js": ["show-button.js"]
+    }
+  ]
+}

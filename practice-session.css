@@ -1,0 +1,26 @@
+.practice-session__init-button {
+	/*float: right;*/
+}
+
+[data-is-pinned] {
+	background-color: aliceblue;
+}
+
+.manifest-item {
+	display: flex;
+}
+
+.good, .bad, .pin {
+	margin-left: 5px;
+	margin-bottom: 2px;
+	border: none;
+}
+.good {
+	background-color: seagreen
+}
+.bad {
+	background-color: indianred
+}
+.pin {
+	background-color: dodgerblue
+}
