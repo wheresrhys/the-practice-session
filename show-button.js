@@ -59,10 +59,18 @@ function changePriority (setId, amount) {
 function pinSet (setId) {
   chrome.storage.sync.get('pin', map => {
     const pinnedItems = map.pin || [];
-    pinnedItems.unshift(setId);
-    const newPinnedItems = pinnedItems
-      .filter((id, i) => !pinnedItems.slice(0, i).includes(id))
-      .slice(0, 5)
+    let newPinnedItems;
+    if (pinnedItems.includes(setId)) {
+      newPinnedItems = pinnedItems.slice();
+      newPinnedItems.splice(pinnedItems.indexOf(setId), 1)
+    } else {
+      pinnedItems.unshift(setId);
+      newPinnedItems = pinnedItems
+        .filter((id, i) => !pinnedItems.slice(0, i).includes(id))
+        .slice(0, 5)
+      document.querySelector(`[data-set-id="${setId}"]`)
+        .setAttribute('data-is-pinned', '')
+    }
 
     document.querySelectorAll('[data-is-pinned]')
       .forEach(el => {
@@ -70,9 +78,6 @@ function pinSet (setId) {
           el.removeAttribute('data-is-pinned');
         }
       })
-
-    document.querySelector(`[data-set-id="${setId}"]`)
-      .setAttribute('data-is-pinned', '');
 
     sortSets();
 
