@@ -2,8 +2,16 @@
 	/*float: right;*/
 }
 
-[data-is-pinned] {
+.manifest-item[data-is-pinned], .manifest-item[data-is-pinned]:hover {
 	background-color: aliceblue;
+}
+
+[data-is-pinned]::before {
+	content: 'PINNED';
+	color: black;
+	margin-right: 5px;
+	display: inline-block;
+	font-weight: bold;
 }
 
 .manifest-item {
@@ -23,4 +31,16 @@
 }
 .pin {
 	background-color: dodgerblue
+}
+
+.manifest-item[data-score="good"], .manifest-item[data-score="good"]:hover {
+	background-color: rgba(50, 250, 50, 0.3);
+}
+
+.manifest-item[data-score="bad"], .manifest-item[data-score="bad"]:hover {
+	background-color: rgba(250, 50, 50, 0.3);
+}
+
+.manifest-item[data-score="awful"], .manifest-item[data-score="awful"]:hover {
+	background-color: rgba(250, 50, 50, 0.5);
 }
