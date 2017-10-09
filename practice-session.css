@@ -1,5 +1,7 @@
-.practice-session__init-button {
-	/*float: right;*/
+@media (min-width: 72em) {
+	.navigation .site.menu li {
+	  width: calc(100% / 6);
+	}
 }
 
 .manifest-item[data-is-pinned], .manifest-item[data-is-pinned]:hover {
