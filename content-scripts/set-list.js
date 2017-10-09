@@ -1,8 +1,5 @@
-const memberId = /members\/(\d*)/.exec(window.location.href)[1];
 
-function scoreToEpithet (score) {
-  return score > 0 ? 'good' : score < 3 ? 'awful' : score < 0 ? 'bad' : 'ok'
-}
+
 
 function loadAllSets () {
   const list = document.querySelector('#results .manifest-inventory');
@@ -30,95 +27,12 @@ function loadAllSets () {
     })
 }
 
-function safeScoreGet (obj) {
-  if (typeof obj === 'object' && typeof obj.score === 'number') {
-    return obj.score
-  }
-  return 0
-}
-
-function changePriority (setId, amount) {
-  chrome.storage.sync.get(setId, map => {
-    const valToStore = {}
-    valToStore[setId] = {
-      score: safeScoreGet(map[setId]) + amount,
-      lastPracticed: Date.now()
-    };
-
-
-    const el = document.querySelector(`[data-set-id="${setId}"]`)
-    el.setAttribute('data-last-practiced', valToStore[setId].lastPracticed);
-    el.setAttribute('data-score', scoreToEpithet(valToStore[setId].score));
-
-    sortSets();
-
-    chrome.storage.sync.set(valToStore);
-  });
-}
-
-function pinSet (setId) {
-  chrome.storage.sync.get('pin', map => {
-    const pinnedItems = map.pin || [];
-    let newPinnedItems;
-    if (pinnedItems.includes(setId)) {
-      newPinnedItems = pinnedItems.slice();
-      newPinnedItems.splice(pinnedItems.indexOf(setId), 1)
-    } else {
-      pinnedItems.unshift(setId);
-      newPinnedItems = pinnedItems
-        .filter((id, i) => !pinnedItems.slice(0, i).includes(id))
-        .slice(0, 5)
-      document.querySelector(`[data-set-id="${setId}"]`)
-        .setAttribute('data-is-pinned', '')
-    }
-
-    document.querySelectorAll('[data-is-pinned]')
-      .forEach(el => {
-        if(!newPinnedItems.includes(el.dataset.setId)) {
-          el.removeAttribute('data-is-pinned');
-        }
-      })
-
-    sortSets();
-
-    chrome.storage.sync.set({
-      pin: newPinnedItems
-    });
-  });
-}
-
-function getSetId (button) {
-  return button.parentNode.parentNode.dataset.setId
-}
-
-function practicifySet (li) {
-  const setId = li.querySelector('a').href.split('sets/')[1];
-  li.setAttribute('data-set-id', setId);
-  const buttons = document.createElement('div');
-  const good = document.createElement('button');
-  good.textContent = 'nailed it!';
-  good.className = 'good';
-  const bad = document.createElement('button');
-  bad.textContent = 'needs work';
-  bad.className = 'bad';
-  const pin = document.createElement('button');
-  pin.textContent = 'pin to top';
-  pin.className = 'pin';
-  buttons.appendChild(good);
-  buttons.appendChild(bad);
-  buttons.appendChild(pin);
-  li.appendChild(buttons);
-  good.addEventListener('click', ev => changePriority(getSetId(ev.target), 2));
-  bad.addEventListener('click', ev => changePriority(getSetId(ev.target), -1));
-  pin.addEventListener('click', ev => pinSet(getSetId(ev.target)));
-}
-
 async function exposeData (pinnedSets, li) {
   const setId = li.dataset.setId;
   const setData = await dataPromise(li.dataset.setId, {});
 
   li.setAttribute('data-score', scoreToEpithet(setData.score));
-  li.setAttribute('data-last-practiced', setData.lastPracticed || 0);
+  li.setAttribute('data-sort-order', calculateSortScore(setData.lastPracticed || 0, setData.score));
   if (pinnedSets.includes(setId)) {
     li.setAttribute('data-is-pinned', '');
   }
@@ -148,8 +62,8 @@ function getPinnedSets () {
 function sortSets (sets) {
   sets = sets || [...document.querySelectorAll('#results .manifest-inventory>li')];
   sets.sort((el1, el2) => {
-    const val1 = el1.dataset.lastPracticed;
-    const val2 = el2.dataset.lastPracticed;
+    const val1 = el1.dataset.sortOrder;
+    const val2 = el2.dataset.sortOrder;
     const isPinned1 = el1.hasAttribute('data-is-pinned');
     const isPinned2 = el2.hasAttribute('data-is-pinned');
     return isPinned1 && !isPinned2 ? -1 : !isPinned1 && isPinned2 ? 1 :
@@ -163,7 +77,7 @@ async function initPracticeSession () {
   document.querySelector('.pagination').remove();
   await loadAllSets();
   const sets = [...document.querySelectorAll('#results .manifest-inventory>li')];
-  sets.map(practicifySet);
+  sets.map(set => practicifySet(set, null, true));
   const pinnedSets = await dataPromise('pin', []);
   await Promise.all(sets.map(exposeData.bind(null, pinnedSets)))
   sortSets(sets);
@@ -178,4 +92,4 @@ function initPracticeSessionButton () {
   button.addEventListener('click', initPracticeSession)
 }
 
-initPracticeSessionButton()
+initPracticeSession()

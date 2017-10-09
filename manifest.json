@@ -11,7 +11,14 @@
       "matches": ["https://thesession.org/members/*/sets"],
       "run_at": "document_end",
       "css": ["practice-session.css"],
-      "js": ["show-button.js"]
+      "js": ["content-scripts/shared.js", "content-scripts/set-list.js"]
+    },
+    {
+      "matches": ["https://thesession.org/members/*/sets/*"],
+      "exclude_matches": ["https://thesession.org/members/*/sets/add*"],
+      "run_at": "document_end",
+      "css": ["practice-session.css"],
+      "js": ["content-scripts/shared.js", "content-scripts/set.js"]
     }
   ]
 }
