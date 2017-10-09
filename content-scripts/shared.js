@@ -1,5 +1,8 @@
-const memberId = /members\/(\d*)/.exec(window.location.href)[1];
+const memberId = /members\/(\d*)/.exec(document.querySelector('.membership a').href)[1];
 
+document.querySelector('.site.menu').insertAdjacentHTML('beforeend', `
+  <li><a href="/members/${memberId}/sets">Practice</a></li>
+`)
 
 function scoreToEpithet (score) {
   return score > 0 ? 'good' : score < 3 ? 'awful' : score < 0 ? 'bad' : 'ok'
@@ -8,6 +11,26 @@ function scoreToEpithet (score) {
 // adjusts last practiced date by +/- days determined by score
 function calculateSortScore (lastPracticed, score) {
   return lastPracticed + ((score || 0) * 24*60*60*1000);
+}
+
+function dataPromise (key, defaultValue) {
+  return new Promise((res, rej) => {
+    chrome.storage.sync.get(key, map => {
+      res(map[key] || defaultValue);
+    })
+  })
+}
+
+async function exposeData (pinnedSets, li) {
+  pinnedSets = pinnedSets || await dataPromise('pin', []);
+  const setId = li.dataset.setId;
+  const setData = await dataPromise(li.dataset.setId, {});
+
+  li.setAttribute('data-score', scoreToEpithet(setData.score));
+  li.setAttribute('data-sort-order', calculateSortScore(setData.lastPracticed || 0, setData.score));
+  if (pinnedSets.includes(setId)) {
+    li.setAttribute('data-is-pinned', '');
+  }
 }
 
 function practicifySet (el, setId, inList) {
@@ -75,16 +98,14 @@ function pinSet (setId, inList) {
         .setAttribute('data-is-pinned', '')
     }
 
-    if (inList) {
-      document.querySelectorAll('[data-is-pinned]')
-        .forEach(el => {
-          if(!newPinnedItems.includes(el.dataset.setId)) {
-            el.removeAttribute('data-is-pinned');
-          }
-        })
+    document.querySelectorAll('[data-is-pinned]')
+      .forEach(el => {
+        if(!newPinnedItems.includes(el.dataset.setId)) {
+          el.removeAttribute('data-is-pinned');
+        }
+      })
 
-      sortSets();
-    }
+    inList && sortSets();
     chrome.storage.sync.set({
       pin: newPinnedItems
     });

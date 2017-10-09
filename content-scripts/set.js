@@ -1,2 +1,4 @@
 const setId = /sets\/(\d*)/.exec(window.location.href)[1];
-practicifySet(document.querySelector('h2'), setId)
+const heading = document.querySelector('h2')
+practicifySet(heading, setId)
+exposeData(null, heading)

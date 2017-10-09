@@ -27,38 +27,6 @@ function loadAllSets () {
     })
 }
 
-async function exposeData (pinnedSets, li) {
-  const setId = li.dataset.setId;
-  const setData = await dataPromise(li.dataset.setId, {});
-
-  li.setAttribute('data-score', scoreToEpithet(setData.score));
-  li.setAttribute('data-sort-order', calculateSortScore(setData.lastPracticed || 0, setData.score));
-  if (pinnedSets.includes(setId)) {
-    li.setAttribute('data-is-pinned', '');
-  }
-}
-
-function dataPromise (key, defaultValue) {
-  return new Promise((res, rej) => {
-    chrome.storage.sync.get(key, map => {
-      res(map[key] || defaultValue);
-    })
-  })
-}
-
-function getPinnedSets () {
-  chrome.storage.sync.get('pin', map => {
-    console.log(map)
-    const pinnedItems = map.pin || [];
-    pinnedItems.unshift(setId);
-    chrome.storage.sync.set({
-      pin: pinnedItems
-        .filter((id, i) => !pinnedItems.slice(0, i).includes(id))
-        .slice(0, 5)
-    });
-  });
-}
-
 function sortSets (sets) {
   sets = sets || [...document.querySelectorAll('#results .manifest-inventory>li')];
   sets.sort((el1, el2) => {
